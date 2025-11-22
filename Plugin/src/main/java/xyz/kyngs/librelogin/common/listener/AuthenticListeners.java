@@ -10,7 +10,9 @@ import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.kyngs.librelogin.api.BiHolder;
 import xyz.kyngs.librelogin.api.PlatformHandle;
@@ -355,8 +357,15 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
 
     protected BiHolder<Boolean, S> chooseServer(
             P player, @Nullable String ip, @Nullable User user) {
-        var id = platformHandle.getUUIDForPlayer(player);
-        var fromFloodgate = plugin.fromFloodgate(id);
+        return chooseServer(
+                platformHandle.getUUIDForPlayer(player),
+                ip == null ? platformHandle.getIP(player) : ip,
+                user);
+    }
+
+    protected BiHolder<Boolean, S> chooseServer(
+            UUID uuid, @NotNull String ip, @Nullable User user) {
+        var fromFloodgate = plugin.fromFloodgate(uuid);
 
         var sessionTime =
                 Duration.ofSeconds(
@@ -365,11 +374,7 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
         if (fromFloodgate) {
             user = null;
         } else if (user == null) {
-            user = plugin.getDatabaseProvider().getByUUID(id);
-        }
-
-        if (ip == null) {
-            ip = platformHandle.getIP(player);
+            user = plugin.getDatabaseProvider().getByUUID(uuid);
         }
 
         if (fromFloodgate
@@ -382,9 +387,9 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
                                 .plus(sessionTime)
                                 .isAfter(LocalDateTime.now()))) {
             return new BiHolder<>(
-                    true, plugin.getServerHandler().chooseLobbyServer(user, player, true, false));
+                    true, plugin.getServerHandler().chooseLobbyServer(user, null, true, false));
         } else {
-            return new BiHolder<>(false, plugin.getServerHandler().chooseLimboServer(user, player));
+            return new BiHolder<>(false, plugin.getServerHandler().chooseLimboServer(user, null));
         }
     }
 }

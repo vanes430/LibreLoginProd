@@ -179,7 +179,7 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> {
     public void authorize(Player player, User user, Audience audience) {
         try {
 
-            var location = listeners.getSpawnLocationCache().getIfPresent(player);
+            var location = listeners.getSpawnLocationCache().getIfPresent(player.getUniqueId());
 
             if (location == null) {
                 var world = getServerHandler().chooseLobbyServer(user, player, true, false);
@@ -191,10 +191,11 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> {
 
                 location = world.getSpawnLocation();
             } else {
-                listeners.getSpawnLocationCache().invalidate(player);
+                listeners.getSpawnLocationCache().invalidate(player.getUniqueId());
             }
 
             var finalLocation = location;
+            System.out.println("#");
             PaperUtil.runSyncAndWait(() -> player.teleportAsync(finalLocation), this);
 
         } catch (EventCancelledException ignored) {
