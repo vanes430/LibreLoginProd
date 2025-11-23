@@ -142,12 +142,13 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
 
         var virtual = plugin.getPlatformHandle().getPlayersVirtualHost(player);
 
-        plugin.getLogger()
-                .debug(
-                        "Virtual host for player "
-                                + plugin.getPlatformHandle().getUsernameForPlayer(player)
-                                + ": "
-                                + virtual);
+        if (virtual != null)
+            plugin.getLogger()
+                    .debug(
+                            "Virtual host for player "
+                                    + plugin.getPlatformHandle().getUsernameForPlayer(player)
+                                    + ": "
+                                    + virtual);
 
         var servers = virtual == null ? lobbyServers.get("root") : lobbyServers.get(virtual);
 
