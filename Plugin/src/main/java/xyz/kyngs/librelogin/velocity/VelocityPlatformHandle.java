@@ -9,6 +9,7 @@ package xyz.kyngs.librelogin.velocity;
 import com.google.common.base.MoreObjects;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.Nullable;
 import xyz.kyngs.librelogin.api.PlatformHandle;
 import xyz.kyngs.librelogin.api.server.ServerPing;
 
@@ -136,9 +138,11 @@ public class VelocityPlatformHandle implements PlatformHandle<Player, Registered
     }
 
     @Override
-    public String getPlayersVirtualHost(Player player) {
-        var virt = player.getVirtualHost().orElse(null);
-
+    public String getPlayersVirtualHost(@Nullable Player player) {
+        InetSocketAddress virt = null;
+        if (player != null) {
+            virt = player.getVirtualHost().orElse(null);
+        }
         return virt == null ? null : virt.getHostName();
     }
 
