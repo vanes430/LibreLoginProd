@@ -80,7 +80,7 @@ public class Command<P> extends BaseCommand {
         if (!plugin.validPassword(password))
             throw new InvalidCommandArgument(getMessage("error-forbidden-password"));
 
-        sender.sendMessage(getMessage(messageKey));
+        if (!getMessages().isEmpty(messageKey)) sender.sendMessage(getMessage(messageKey));
 
         var defaultProvider = plugin.getDefaultCryptoProvider();
 

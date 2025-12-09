@@ -34,7 +34,8 @@ public class LoginCommand<P> extends AuthorizationCommand<P> {
                     if (!user.isRegistered())
                         throw new InvalidCommandArgument(getMessage("error-not-registered"));
 
-                    sender.sendMessage(getMessage("info-logging-in"));
+                    if (!getMessages().isEmpty("info-logging-in"))
+                        sender.sendMessage(getMessage("info-logging-in"));
 
                     var hashed = user.getHashedPassword();
                     var crypto = getCrypto(hashed);
@@ -82,7 +83,8 @@ public class LoginCommand<P> extends AuthorizationCommand<P> {
                         }
                     }
 
-                    sender.sendMessage(getMessage("info-logged-in"));
+                    if (!getMessages().isEmpty("info-logged-in"))
+                        sender.sendMessage(getMessage("info-logged-in"));
                     getAuthorizationProvider()
                             .authorize(user, player, AuthenticatedEvent.AuthenticationReason.LOGIN);
                 });

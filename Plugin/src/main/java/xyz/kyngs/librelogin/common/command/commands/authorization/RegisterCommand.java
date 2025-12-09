@@ -36,7 +36,8 @@ public class RegisterCommand<P> extends AuthorizationCommand<P> {
 
                     setPassword(sender, user, password, "info-registering");
 
-                    sender.sendMessage(getMessage("info-registered"));
+                    if (!getMessages().isEmpty("info-registered"))
+                        sender.sendMessage(getMessage("info-registered"));
 
                     getAuthorizationProvider()
                             .authorize(

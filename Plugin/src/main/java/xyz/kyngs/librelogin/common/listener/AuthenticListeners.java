@@ -53,14 +53,15 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
                         plugin.getConfiguration().get(ConfigurationKeys.SESSION_TIMEOUT));
 
         if (user.autoLoginEnabled()) {
-            plugin.delay(
-                    () ->
-                            plugin.getPlatformHandle()
-                                    .getAudienceForPlayer(player)
-                                    .sendMessage(
-                                            plugin.getMessages()
-                                                    .getMessage("info-premium-logged-in")),
-                    500);
+            if (!plugin.getMessages().isEmpty("info-premium-logged-in"))
+                plugin.delay(
+                        () ->
+                                plugin.getPlatformHandle()
+                                        .getAudienceForPlayer(player)
+                                        .sendMessage(
+                                                plugin.getMessages()
+                                                        .getMessage("info-premium-logged-in")),
+                        500);
             plugin.getEventProvider()
                     .fire(
                             plugin.getEventTypes().authenticated,
@@ -76,14 +77,15 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
                         .toLocalDateTime()
                         .plus(sessionTime)
                         .isAfter(LocalDateTime.now())) {
-            plugin.delay(
-                    () ->
-                            plugin.getPlatformHandle()
-                                    .getAudienceForPlayer(player)
-                                    .sendMessage(
-                                            plugin.getMessages()
-                                                    .getMessage("info-session-logged-in")),
-                    500);
+            if (!plugin.getMessages().isEmpty("info-session-logged-in"))
+                plugin.delay(
+                        () ->
+                                plugin.getPlatformHandle()
+                                        .getAudienceForPlayer(player)
+                                        .sendMessage(
+                                                plugin.getMessages()
+                                                        .getMessage("info-session-logged-in")),
+                        500);
             plugin.getEventProvider()
                     .fire(
                             plugin.getEventTypes().authenticated,
