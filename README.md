@@ -18,6 +18,11 @@ LibreLogin did not meet our expectations, which is why this fork was created.</p
 <br>
 <br>
 
+# Contributors, thanks to:
+
+**vuxeim** - for support for the newest minecraft versions
+**original LibreLogin creators** - for creating the LibreLogin
+
 # Quick information 📌
 
 <img src="https://img.shields.io/badge/Java%20version-%2017+-blue?style=for-the-badge&logo=java&logoColor=white"
