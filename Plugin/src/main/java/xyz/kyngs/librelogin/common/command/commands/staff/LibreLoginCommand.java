@@ -239,6 +239,8 @@ public class LibreLoginCommand<P> extends StaffCommand<P> {
                     audience.sendMessage(
                             getMessage(
                                     "info-user",
+                                    "%name%",
+                                    user.getLastNickname(),
                                     "%uuid%",
                                     user.getUuid().toString(),
                                     "%premium_uuid%",

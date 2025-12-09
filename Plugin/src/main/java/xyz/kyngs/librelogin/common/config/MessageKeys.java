@@ -673,6 +673,7 @@ The error will be printed to the console\
             new ConfigurationKey<>(
                     "info-user",
                     """
+                    Name: %name%
                     UUID: %uuid%
                     Premium UUID: %premium_uuid%
                     Last Seen: %last_seen%
