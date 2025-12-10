@@ -6,6 +6,9 @@
 
 package xyz.kyngs.librelogin.paper;
 
+import static xyz.kyngs.librelogin.paper.protocol.ProtocolUtil.getServerVersion;
+
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.google.common.base.MoreObjects;
 import java.io.File;
 import java.util.Arrays;
@@ -74,9 +77,15 @@ public class PaperPlatformHandle implements PlatformHandle<Player, World> {
         if (limbo) {
             world.setSpawnLocation(
                     new Location(world, 0.5, world.getHighestBlockYAt(0, 0) + 1, 0.5));
-            world.setKeepSpawnInMemory(true);
-            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-            world.setGameRule(GameRule.DO_INSOMNIA, false);
+            if (getServerVersion().isOlderThan(ServerVersion.V_1_21_9))
+                world.setKeepSpawnInMemory(true);
+            if (getServerVersion().isOlderThan(ServerVersion.V_1_21_11)) {
+                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                world.setGameRule(GameRule.DO_INSOMNIA, false);
+            } else {
+                world.setGameRule(GameRules.ADVANCE_TIME, false);
+                world.setGameRule(GameRules.SPAWN_PHANTOMS, false);
+            }
         }
 
         return world;

@@ -27,6 +27,14 @@ public interface Messages {
     TextComponent getMessage(String key, String... replacements);
 
     /**
+     * Tells if a message should be treated as empty.
+     *
+     * @param key The message key.
+     * @return Boolean value representing message emptiness.
+     */
+    boolean isEmpty(String key);
+
+    /**
      * Reloads the messages.
      *
      * @param plugin The plugin.

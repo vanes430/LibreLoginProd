@@ -7,12 +7,14 @@
 package xyz.kyngs.librelogin.paper;
 
 import static xyz.kyngs.librelogin.common.config.ConfigurationKeys.DEBUG;
+import static xyz.kyngs.librelogin.paper.protocol.ProtocolUtil.getServerVersion;
 
 import co.aikar.commands.BukkitCommandIssuer;
 import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.CommandManager;
 import co.aikar.commands.PaperCommandManager;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import java.io.File;
 import java.io.InputStream;
@@ -137,10 +139,17 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> {
             return;
         }
 
-        if (Bukkit.spigot().getSpigotConfig().getBoolean("settings.bungeecord")
-                || Bukkit.spigot()
-                        .getPaperConfig()
-                        .getBoolean("settings.velocity-support.enabled")) {
+        boolean isBehindProxy;
+        if (getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_4))
+            isBehindProxy = Bukkit.getServer().getServerConfig().isProxyEnabled();
+        else
+            isBehindProxy =
+                    Bukkit.spigot().getSpigotConfig().getBoolean("settings.bungeecord")
+                            || Bukkit.spigot()
+                                    .getPaperConfig()
+                                    .getBoolean("settings.velocity-support.enabled");
+
+        if (isBehindProxy) {
             getLogger().error("!!!This server is running under a proxy, LibreLogin won't start!!!");
             getLogger()
                     .error(

@@ -525,14 +525,16 @@ The error will be printed to the console\
             new ConfigurationKey<>(
                     "info-logging-in",
                     "Logging in...",
-                    "This message is displayed when the player attempts to log in.",
+                    "This message is displayed when the player attempts to log in. Set to single"
+                            + " space \" \" to disable.",
                     ConfigurateHelper::getString);
 
     public static final ConfigurationKey<String> INFO_LOGGED_IN =
             new ConfigurationKey<>(
                     "info-logged-in",
                     "Logged in!",
-                    "This message is displayed when the player logs in.",
+                    "This message is displayed when the player logs in. Set to single space \" \""
+                            + " to disable.",
                     ConfigurateHelper::getString);
 
     public static final ConfigurationKey<String> INFO_PREMIUM_LOGGED_IN =
@@ -540,7 +542,7 @@ The error will be printed to the console\
                     "info-premium-logged-in",
                     "You have been logged in automatically!",
                     "This message is displayed when the player logs in automatically because they"
-                            + " have enabled /premium.",
+                            + " have enabled /premium. Set to single space \" \" to disable.",
                     ConfigurateHelper::getString);
 
     public static final ConfigurationKey<String> INFO_SESSION_LOGGED_IN =
@@ -548,21 +550,23 @@ The error will be printed to the console\
                     "info-session-logged-in",
                     "You have been logged in automatically!",
                     "This message is displayed when the player logs in automatically because of a"
-                            + " valid session.",
+                            + " valid session. Set to single space \" \" to disable.",
                     ConfigurateHelper::getString);
 
     public static final ConfigurationKey<String> INFO_REGISTERING =
             new ConfigurationKey<>(
                     "info-registering",
                     "Registering...",
-                    "This message is displayed when the player attempts to register.",
+                    "This message is displayed when the player attempts to register. Set to single"
+                            + " space \" \" to disable.",
                     ConfigurateHelper::getString);
 
     public static final ConfigurationKey<String> INFO_REGISTERED =
             new ConfigurationKey<>(
                     "info-registered",
                     "Registered!",
-                    "This message is displayed when the player registers.",
+                    "This message is displayed when the player registers. Set to single space \" \""
+                            + " to disable.",
                     ConfigurateHelper::getString);
 
     public static final ConfigurationKey<String> INFO_ENABLING =
@@ -669,6 +673,7 @@ The error will be printed to the console\
             new ConfigurationKey<>(
                     "info-user",
                     """
+                    Name: %name%
                     UUID: %uuid%
                     Premium UUID: %premium_uuid%
                     Last Seen: %last_seen%

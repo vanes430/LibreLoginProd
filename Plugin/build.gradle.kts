@@ -137,8 +137,8 @@ dependencies {
     libby("org.bstats:bstats-bukkit:3.1.0")
 
     //Paper
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
-    implementation("com.github.retrooper:packetevents-spigot:2.10.1")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    implementation("com.github.retrooper:packetevents-spigot:2.11.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.25.1")
 
     //Libby

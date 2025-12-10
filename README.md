@@ -6,7 +6,7 @@ update: Thanks to vuxeim and his contribution we can still use LibreLoginProd wi
 
 After couple of weeks I've decided to make a move towards new login plugin which is currently under development.
 I'm not going to maintain this plugin anymore, but still I'm open to PR's.
-Here's the new plugin repo: https://github.com/Navio1430/NavAuth. I'm open to literally any support (even by leaving a star) with code, docs, ideas etc. also anything from todo's list.\
+Here's the new plugin repo: https://github.com/Navio1430/NavAuth. I'm open to literally any support (even by leaving a star) with code, docs, ideas etc. also anything from todo's list.
 
 <br><br>
 <br><br>
@@ -51,8 +51,8 @@ alt="Contributors listed"></img>
 - Geyser (Bedrock) support using [Floodgate](https://github.com/Navio1430/LibreLoginProd/wiki/Floodgate)
 
 ## Platforms ⚙️
-- [✔️] Velocity - up to 1.21.8
-- [✔️] Paper - up to 1.21.8
+- [✔️] Velocity - up to 1.21.11
+- [✔️] Paper - up to 1.21.11
 - [❌] BungeeCord - no longer supported, do not use it for production
 
 ## Main changes 

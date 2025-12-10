@@ -120,4 +120,9 @@ public class HoconMessages implements Messages {
     public String getRawMessage(String key) {
         return rawMessages.getHelper().getString(key);
     }
+
+    @Override
+    public boolean isEmpty(String key) {
+        return getRawMessage(key).equals(" ");
+    }
 }
