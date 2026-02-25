@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import javax.crypto.*;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -39,10 +40,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import xyz.kyngs.librelogin.api.database.User;
 import xyz.kyngs.librelogin.common.AuthenticLibreLogin;
 import xyz.kyngs.librelogin.common.config.ConfigurationKeys;
@@ -83,6 +81,7 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
     private final Cache<UUID, String> ipCache;
     private final Cache<UUID, User> readOnlyUserCache;
     private final Cache<UUID, Location> spawnLocationCache;
+    private final Cache<UUID, Location> joinedWhileDead;
 
     public PaperListeners(PaperLibreLogin plugin) {
         super(plugin);
@@ -94,6 +93,8 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
         readOnlyUserCache = Caffeine.newBuilder().expireAfterWrite(2, TimeUnit.MINUTES).build();
 
         spawnLocationCache = Caffeine.newBuilder().expireAfterWrite(2, TimeUnit.MINUTES).build();
+
+        joinedWhileDead = Caffeine.newBuilder().expireAfterWrite(2, TimeUnit.MINUTES).build();
     }
 
     public Cache<UUID, Location> getSpawnLocationCache() {
@@ -102,13 +103,21 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        // checking is done here instead of in AsyncPlayerSpawnLocationEvent's handler
-        // cuz there is no (Player) object available in that event
-        var player = event.getPlayer();
-        if (player.getHealth() == 0) {
-            player.setHealth(player.getMaxHealth());
-        }
         GeneralUtil.runAsync(() -> onPlayerDisconnect(event.getPlayer()));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        var location = joinedWhileDead.getIfPresent(event.getPlayer().getUniqueId());
+        if (location == null) {
+            return;
+        }
+
+        if (event.getRespawnReason() != PlayerRespawnEvent.RespawnReason.PLUGIN) {
+            return;
+        }
+
+        event.setRespawnLocation(location);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -118,13 +127,24 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
-        var data = readOnlyUserCache.getIfPresent(event.getPlayer().getUniqueId());
-        if (data == null && !plugin.fromFloodgate(event.getPlayer().getName())) {
-            event.getPlayer().kick(Component.text("Internal error, please try again later."));
+        var player = event.getPlayer();
+        var puuid = player.getUniqueId();
+
+        var data = readOnlyUserCache.getIfPresent(puuid);
+        if (data == null && !plugin.fromFloodgate(player.getName())) {
+            player.kick(Component.text("Internal error, please try again later."));
             return;
         }
-        readOnlyUserCache.invalidate(event.getPlayer().getUniqueId());
-        onPostLogin(event.getPlayer(), data);
+
+        readOnlyUserCache.invalidate(puuid);
+        if (player.isDead()) {
+            spawnLocationCache.invalidate(puuid);
+            player.spigot().respawn();
+        } else {
+            joinedWhileDead.invalidate(puuid);
+        }
+
+        onPostLogin(player, data);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -142,6 +162,7 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
 
     // Changed to an async variant of this event
     // cuz the previous one is deprecated and causes a bug (Issue #52)
+    @SuppressWarnings("UnstableApiUsage") // let me
     @EventHandler(priority = EventPriority.HIGHEST)
     public void chooseWorld(AsyncPlayerSpawnLocationEvent event) {
         var puuid = event.getConnection().getProfile().getId();
@@ -152,7 +173,7 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
                     .runTask(
                             plugin.getBootstrap(),
                             () ->
-                                    Bukkit.getPlayer(puuid)
+                                    plugin.getPlayerForUUID(puuid)
                                             .kick(
                                                     Component.text(
                                                             "Internal error, please try again"
@@ -162,13 +183,12 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
 
         var world = chooseServer(puuid, ip, readOnlyUserCache.getIfPresent(puuid));
         ipCache.invalidate(puuid);
-        spawnLocationCache.invalidate(puuid);
         if (world.value() == null) {
             Bukkit.getScheduler()
                     .runTask(
                             plugin.getBootstrap(),
                             () ->
-                                    Bukkit.getPlayer(puuid)
+                                    plugin.getPlayerForUUID(puuid)
                                             .kick(
                                                     plugin.getMessages()
                                                             .getMessage(
@@ -177,21 +197,23 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
                                                                                     ? "lobby"
                                                                                     : "limbo"))));
         } else {
-            // This is terrible, but should work
+            Function<World, Boolean> isLimbo =
+                    (w) ->
+                            plugin.getConfiguration()
+                                    .get(ConfigurationKeys.LIMBO)
+                                    .contains(w.getName());
+            Location eventSpawnLocation = event.getSpawnLocation();
             if (!event.isNewPlayer()
-                    && !plugin.getConfiguration()
-                            .get(ConfigurationKeys.LIMBO)
-                            .contains(event.getSpawnLocation().getWorld().getName())) {
-                if (plugin.getConfiguration()
-                        .get(ConfigurationKeys.LIMBO)
-                        .contains(world.value().getName())) {
-                    spawnLocationCache.put(puuid, event.getSpawnLocation());
-                } else {
-                    return;
-                }
+                    && !isLimbo.apply(eventSpawnLocation.getWorld())
+                    && isLimbo.apply(world.value())) {
+                spawnLocationCache.put(puuid, eventSpawnLocation);
+            } else {
+                return;
             }
 
-            event.setSpawnLocation(world.value().getSpawnLocation());
+            var loc = world.value().getSpawnLocation();
+            joinedWhileDead.put(puuid, loc);
+            event.setSpawnLocation(loc);
         }
     }
 
