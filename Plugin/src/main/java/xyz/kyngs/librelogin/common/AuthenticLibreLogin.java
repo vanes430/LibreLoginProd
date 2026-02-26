@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import net.kyori.adventure.audience.Audience;
-import org.bstats.charts.CustomChart;
 import org.jetbrains.annotations.Nullable;
 import xyz.kyngs.librelogin.api.BiHolder;
 import xyz.kyngs.librelogin.api.LibreLoginPlugin;
@@ -353,8 +352,6 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
             logger.warn(
                     "!! THIS IS NOT A RELEASE, USE THIS ONLY IF YOU WERE INSTRUCTED TO DO SO. DO"
                             + " NOT USE THIS IN PRODUCTION !!");
-        } else {
-            initMetrics();
         }
 
         delay(this::checkForUpdates, 1000);
@@ -864,8 +861,6 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
                                     }));
         }
     }
-
-    protected abstract void initMetrics(CustomChart... charts);
 
     @Override
     public AuthenticAuthorizationProvider<P, S> getAuthorizationProvider() {

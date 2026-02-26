@@ -53,7 +53,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("dev.samstevens.totp:.*:.*"))
         exclude(dependency("org.bouncycastle:.*:.*"))
         exclude(dependency("org.apache.commons:.*:.*"))
-        exclude(dependency("org.bstats:.*:.*"))
+        exclude(dependency("net.kyori:.*:.*"))
     }
 
     relocate("net.byteflux.libby", "xyz.kyngs.librelogin.lib.libby")
@@ -76,6 +76,7 @@ libby {
     excludeDependency("org.checkerframework:.*:.*")
     excludeDependency("com.google.errorprone:.*:.*")
     excludeDependency("com.google.protobuf:.*:.*")
+    excludeDependency("net.kyori:.*:.*")
 
     // Often redeploys the same version, so calculating checksum causes false flags
     noChecksumDependency("com.github.retrooper.packetevents:.*:.*")
@@ -127,7 +128,6 @@ dependencies {
     compileOnly("dev.simplix:protocolize-api:2.4.2")
     libby("org.bouncycastle:bcprov-jdk18on:1.81")
     libby("org.apache.commons:commons-email:1.6.0")
-    libby("net.kyori:adventure-text-minimessage:4.25.0")
     libby("com.github.kyngs:LegacyMessage:0.2.0")
 
     //Geyser
@@ -135,19 +135,15 @@ dependencies {
     //LuckPerms
     compileOnly("net.luckperms:api:5.5")
 
-    //BStats
-    libby("org.bstats:bstats-velocity:3.1.0")
-    libby("org.bstats:bstats-bukkit:3.1.0")
-
     //Paper
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
     compileOnly("org.apache.logging.log4j:log4j-core:2.25.1")
 
     //Libby
-    compileOnly("xyz.kyngs.libby:libby-bukkit:1.6.0")
-    compileOnly("xyz.kyngs.libby:libby-velocity:1.6.0")
-    compileOnly("xyz.kyngs.libby:libby-paper:1.6.0")
+    implementation("xyz.kyngs.libby:libby-bukkit:1.6.0")
+    implementation("xyz.kyngs.libby:libby-velocity:1.6.0")
+    implementation("xyz.kyngs.libby:libby-paper:1.6.0")
 }
 
 tasks.withType<ProcessResources> {
