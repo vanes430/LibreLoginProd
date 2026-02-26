@@ -99,8 +99,8 @@ dependencies {
     //Velocity
     annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-    compileOnly("com.velocitypowered:velocity-proxy:3.2.0-SNAPSHOT-277")
     compileOnly("com.github.ProxioDev.ValioBungee:RedisBungee-Bungee:0.13.0")
+    compileOnly("io.netty:netty-all:4.1.118.Final")
     implementation("com.github.retrooper:packetevents-velocity:2.11.2")
 
     //MySQL

@@ -99,7 +99,6 @@ public class VelocityBootstrap implements LibreLoginProvider<Player, RegisteredS
                                 libreLogin.getAuthorizationProvider(),
                                 libreLogin.getConfiguration(),
                                 libreLogin.getMessages()));
-        server.getEventManager().register(this, new VelocityListeners(libreLogin));
     }
 
     @Override

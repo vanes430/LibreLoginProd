@@ -99,6 +99,10 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
                         plugin.getEventTypes().authenticated,
                         new AuthenticAuthenticatedEvent<>(user, player, plugin, reason));
         plugin.authorize(player, user, audience);
+
+        if (plugin instanceof xyz.kyngs.librelogin.velocity.VelocityLibreLogin velocityPlugin) {
+            velocityPlugin.getListeners().resumeConnection(user.getUuid());
+        }
     }
 
     @Override

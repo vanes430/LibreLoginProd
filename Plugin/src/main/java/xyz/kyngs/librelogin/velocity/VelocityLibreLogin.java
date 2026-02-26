@@ -54,6 +54,7 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
     @Inject private PluginContainer container;
     @Nullable private VelocityRedisBungeeIntegration redisBungee;
     @Nullable private LimboIntegration<RegisteredServer> limboIntegration;
+    private VelocityListeners listeners;
 
     public VelocityLibreLogin(VelocityBootstrap bootstrap) {
         this.bootstrap = bootstrap;
@@ -206,6 +207,9 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
         if (pluginPresent("redisbungee")) {
             redisBungee = new VelocityRedisBungeeIntegration();
         }
+        listeners = new VelocityListeners(this);
+        server.getEventManager().register(bootstrap, listeners);
+
         super.enable();
         if (getAuthorizationProvider() != null) {
             PacketEvents.getAPI()
@@ -213,6 +217,10 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
                     .registerListener(getAuthorizationProvider().getDialogPrompt());
         }
         getLogger().info("LibreLogin version " + getVersion() + " enabled!");
+    }
+
+    public VelocityListeners getListeners() {
+        return listeners;
     }
 
     @Override

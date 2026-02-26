@@ -1355,4 +1355,11 @@ This section contains autocompletes for commands. It is pretty large, so most pe
                     "Confirm Password",
                     "This message is displayed as the confirm password input label in the dialog.",
                     ConfigurateHelper::getString);
+
+    public static final ConfigurationKey<String> DIALOG_KICK_CANCEL =
+            new ConfigurationKey<>(
+                    "dialog-kick-cancel",
+                    "&cYou cancelled the authentication.",
+                    "This message is displayed when the player cancels the authentication dialog.",
+                    ConfigurateHelper::getString);
 }

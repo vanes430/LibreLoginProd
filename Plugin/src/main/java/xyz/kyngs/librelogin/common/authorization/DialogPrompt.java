@@ -56,29 +56,10 @@ public class DialogPrompt<P, S> extends PacketListenerAbstract {
         }
 
         protocolVersion = user.getClientVersion().getProtocolVersion();
-        plugin.getLogger()
-                .info(
-                        "Debug: Player "
-                                + playerName
-                                + " protocol version (PacketEvents): "
-                                + protocolVersion);
 
         if (protocolVersion >= 771) {
-            plugin.getLogger()
-                    .info(
-                            "Debug: Protocol version "
-                                    + protocolVersion
-                                    + " is >= 771. Sending dialog to "
-                                    + playerName);
             sendInputDialog(player, registered, DialogAction.CLOSE);
             return true;
-        } else {
-            plugin.getLogger()
-                    .info(
-                            "Debug: Protocol version "
-                                    + protocolVersion
-                                    + " is < 771. Falling back to text prompt for "
-                                    + playerName);
         }
         return false;
     }
@@ -126,14 +107,14 @@ public class DialogPrompt<P, S> extends PacketListenerAbstract {
         ActionButton submitBtn =
                 new ActionButton(
                         btnDataSubmit,
-                        new DynamicCustomAction(new ResourceLocation("kite", "submit"), null));
+                        new DynamicCustomAction(new ResourceLocation("vanes430", "submit"), null));
 
         CommonButtonData btnDataCancel =
                 new CommonButtonData(getMessages().getMessage("dialog-button-cancel"), null, 50);
         ActionButton cancelBtn =
                 new ActionButton(
                         btnDataCancel,
-                        new DynamicCustomAction(new ResourceLocation("kite", "cancel"), null));
+                        new DynamicCustomAction(new ResourceLocation("vanes430", "cancel"), null));
 
         // Setup Common Data
         CommonDialogData commonData =
@@ -151,46 +132,90 @@ public class DialogPrompt<P, S> extends PacketListenerAbstract {
                 new MultiActionDialog(commonData, Arrays.asList(submitBtn, cancelBtn), null, 2);
 
         // Kirim Dialog
-        WrapperPlayServerShowDialog packet = new WrapperPlayServerShowDialog(dialog);
-        PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
+        var user = PacketEvents.getAPI().getPlayerManager().getUser(player);
+        if (user != null) {
+            if (user.getConnectionState()
+                    == com.github.retrooper.packetevents.protocol.ConnectionState.CONFIGURATION) {
+                com.github.retrooper.packetevents.wrapper.configuration.server
+                                .WrapperConfigServerShowDialog
+                        configPacket =
+                                new com.github.retrooper.packetevents.wrapper.configuration.server
+                                        .WrapperConfigServerShowDialog(dialog);
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, configPacket);
+            } else {
+                WrapperPlayServerShowDialog playPacket = new WrapperPlayServerShowDialog(dialog);
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, playPacket);
+            }
+        }
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CUSTOM_CLICK_ACTION) {
+        boolean isConfig =
+                event.getPacketType() == PacketType.Configuration.Client.CUSTOM_CLICK_ACTION;
+        boolean isPlay = event.getPacketType() == PacketType.Play.Client.CUSTOM_CLICK_ACTION;
+
+        if (isConfig || isPlay) {
             try {
-                WrapperPlayClientCustomClickAction wrapper =
-                        new WrapperPlayClientCustomClickAction(event);
-                String actionId = wrapper.getId().toString();
-                Object payload = wrapper.getPayload();
+                String actionId;
+                NBTCompound nbt;
+
+                if (isConfig) {
+                    var wrapper =
+                            new com.github.retrooper.packetevents.wrapper.configuration.client
+                                    .WrapperConfigClientCustomClickAction(event);
+                    actionId = wrapper.getId().toString();
+                    nbt = (NBTCompound) wrapper.getPayload();
+                } else {
+                    var wrapper = new WrapperPlayClientCustomClickAction(event);
+                    actionId = wrapper.getId().toString();
+                    nbt = (NBTCompound) wrapper.getPayload();
+                }
 
                 UUID uuid = event.getUser().getUUID();
                 var player = plugin.getPlayerForUUID(uuid);
-                if (player == null) return;
 
-                if (actionId.equals("kite:cancel")) {
-                    plugin.getPlatformHandle()
-                            .kick(player, Component.text("Disconnected by user."));
+                if (actionId.equals("vanes430:cancel")) {
+                    Component message = getMessages().getMessage("dialog-kick-cancel");
+                    if (player != null) {
+                        plugin.getPlatformHandle().kick(player, message);
+                    } else {
+                        // Jika di fase Configuration, mungkin player object belum sepenuhnya
+                        // tersedia
+                        // Gunakan PacketEvents untuk kick secara langsung
+                        event.getUser().closeConnection();
+                    }
                     return;
                 }
 
-                if (actionId.equals("kite:submit") && payload instanceof NBTCompound nbt) {
+                if (actionId.equals("vanes430:submit") && nbt != null) {
                     String password = nbt.getStringTagValueOrNull("password");
                     String confirmPassword = nbt.getStringTagValueOrNull("confirm_password");
-
                     var user = plugin.getDatabaseProvider().getByUUID(uuid);
                     if (user == null) return;
 
-                    var audience = plugin.getPlatformHandle().getAudienceForPlayer(player);
+                    var audience =
+                            player != null
+                                    ? plugin.getPlatformHandle().getAudienceForPlayer(player)
+                                    : event.getUser();
 
                     if (user.isRegistered()) {
-                        handleLogin(player, user, password, audience);
+                        handleLogin(
+                                player,
+                                user,
+                                password,
+                                (net.kyori.adventure.audience.Audience) audience);
                     } else {
-                        handleRegister(player, user, password, confirmPassword, audience);
+                        handleRegister(
+                                player,
+                                user,
+                                password,
+                                confirmPassword,
+                                (net.kyori.adventure.audience.Audience) audience);
                     }
                 }
             } catch (Exception e) {
-                // Ignore
+                plugin.getLogger().error("Error handling dialog packet", e);
             }
         }
     }
