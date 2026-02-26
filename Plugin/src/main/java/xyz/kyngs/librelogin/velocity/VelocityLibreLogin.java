@@ -105,6 +105,7 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
 
     @Override
     public void authorize(Player player, User user, Audience audience) {
+        if (listeners.isWaitingForResume(player.getUniqueId())) return;
         try {
             var lobby = getServerHandler().chooseLobbyServer(user, player, true, false);
             if (lobby == null) {

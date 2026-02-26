@@ -25,6 +25,8 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.kyori.adventure.text.Component;
+import xyz.kyngs.librelogin.api.BiHolder;
+import xyz.kyngs.librelogin.api.database.User;
 import xyz.kyngs.librelogin.api.event.exception.EventCancelledException;
 import xyz.kyngs.librelogin.common.config.ConfigurationKeys;
 import xyz.kyngs.librelogin.common.listener.AuthenticListeners;
@@ -33,7 +35,8 @@ public class VelocityListeners
         extends AuthenticListeners<VelocityLibreLogin, Player, RegisteredServer> {
 
     private static final AttributeKey<?> FLOODGATE_ATTR = AttributeKey.valueOf("floodgate-player");
-    private final ConcurrentHashMap<UUID, Continuation> continuations = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, BiHolder<PlayerChooseInitialServerEvent, Continuation>>
+            continuations = new ConcurrentHashMap<>();
 
     public VelocityListeners(VelocityLibreLogin plugin) {
         super(plugin);
@@ -59,13 +62,15 @@ public class VelocityListeners
 
         var profile = plugin.getDatabaseProvider().getByName(event.getUsername());
 
+        if (profile == null) return;
+
         var gProfile = event.getOriginalProfile();
 
         event.setGameProfile(
                 new GameProfile(profile.getUuid(), gProfile.getName(), gProfile.getProperties()));
     }
 
-    @Subscribe(order = PostOrder.LAST)
+    @Subscribe(order = PostOrder.EARLY)
     public void onPreLogin(PreLoginEvent event) {
 
         if (!event.getResult().isAllowed()) return;
@@ -116,21 +121,13 @@ public class VelocityListeners
         return EventTask.withContinuation(
                 continuation -> {
                     Player player = event.getPlayer();
-                    plugin.getLogger()
-                            .info(
-                                    "Debug: PlayerChooseInitialServerEvent for "
-                                            + player.getUsername());
                     var authProvider = plugin.getAuthorizationProvider();
 
                     if (authProvider == null
                             || authProvider.isAuthorized(player)
                             || plugin.fromFloodgate(player.getUniqueId())) {
-                        plugin.getLogger()
-                                .info(
-                                        "Debug: Skipping auth for "
-                                                + player.getUsername()
-                                                + " (Authorized or Floodgate)");
-                        handleInitialServer(event, continuation);
+                        var dbUser = plugin.getDatabaseProvider().getByUUID(player.getUniqueId());
+                        handleInitialServer(event, continuation, dbUser, true);
                         return;
                     }
 
@@ -139,41 +136,55 @@ public class VelocityListeners
                                     .getPlayerManager()
                                     .getUser(player);
 
-                    if (user != null) {
-                        int protocolVersion = user.getClientVersion().getProtocolVersion();
-                        plugin.getLogger()
-                                .info(
-                                        "Debug: Player "
-                                                + player.getUsername()
-                                                + " protocol: "
-                                                + protocolVersion);
-
-                        if (protocolVersion >= 771) {
-                            continuations.put(player.getUniqueId(), continuation);
-                            var dbUser =
-                                    plugin.getDatabaseProvider().getByUUID(player.getUniqueId());
-                            authProvider
-                                    .getDialogPrompt()
-                                    .checkAndSend(player, dbUser != null && dbUser.isRegistered());
-                        } else {
-                            handleInitialServer(event, continuation);
+                    if (user != null && user.getClientVersion().getProtocolVersion() >= 771) {
+                        // Tunda koneksi dan kirim dialog
+                        // JANGAN panggil handleInitialServer di sini agar event tidak dianggap
+                        // 'selesai' dengan server null
+                        continuations.put(
+                                player.getUniqueId(), new BiHolder<>(event, continuation));
+                        var dbUser = plugin.getDatabaseProvider().getByUUID(player.getUniqueId());
+                        if (dbUser != null) {
+                            authProvider.startTracking(dbUser, player);
                         }
+                        authProvider
+                                .getDialogPrompt()
+                                .checkAndSend(player, dbUser != null && dbUser.isRegistered());
                     } else {
-                        handleInitialServer(event, continuation);
+                        // Versi lama, lanjutkan ke Limbo/Lobby as usual
+                        var dbUser = plugin.getDatabaseProvider().getByUUID(player.getUniqueId());
+                        handleInitialServer(event, continuation, dbUser, false);
                     }
                 });
     }
 
     public void resumeConnection(UUID uuid) {
-        Continuation continuation = continuations.remove(uuid);
-        if (continuation != null) {
-            continuation.resume();
+        var holder = continuations.remove(uuid);
+        if (holder != null) {
+            var user = plugin.getDatabaseProvider().getByUUID(uuid);
+            handleInitialServer(holder.key(), holder.value(), user, true);
         }
     }
 
+    public boolean isWaitingForResume(UUID uuid) {
+        return continuations.containsKey(uuid);
+    }
+
     private void handleInitialServer(
-            PlayerChooseInitialServerEvent event, Continuation continuation) {
-        var server = chooseServer(event.getPlayer(), null, null);
+            PlayerChooseInitialServerEvent event,
+            Continuation continuation,
+            User user,
+            boolean authorized) {
+        BiHolder<Boolean, RegisteredServer> server;
+
+        if (authorized) {
+            server =
+                    new BiHolder<>(
+                            true,
+                            plugin.getServerHandler()
+                                    .chooseLobbyServer(user, event.getPlayer(), true, false));
+        } else {
+            server = chooseServer(event.getPlayer(), null, user);
+        }
 
         if (server.value() == null) {
             event.getPlayer()
