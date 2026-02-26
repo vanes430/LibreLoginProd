@@ -33,7 +33,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: LibreLoginProd-JAR
-        path: target/LibreLoginProd.jar
+        path: target/*.jar
 
     - name: Update Latest Release
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -43,4 +43,4 @@ jobs:
         automatic_release_tag: "latest"
         prerelease: false
         title: "Latest Development Build"
-        files: target/LibreLoginProd.jar
+        files: target/*.jar
