@@ -41,22 +41,24 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.checkerframework:.*:.*"))
         exclude(dependency("com.google.errorprone:.*:.*"))
         exclude(dependency("com.google.protobuf:.*:.*"))
+        exclude(dependency("co.aikar:.*:.*"))
+        exclude(dependency("com.github.ben-manes.caffeine:.*:.*"))
+        exclude(dependency("org.spongepowered:.*:.*"))
+        exclude(dependency("com.typesafe:.*:.*"))
+        exclude(dependency("com.zaxxer:.*:.*"))
+        exclude(dependency("org.mariadb.jdbc:.*:.*"))
+        exclude(dependency("org.xerial:.*:.*"))
+        exclude(dependency("org.postgresql:.*:.*"))
+        exclude(dependency("at.favre.lib:.*:.*"))
+        exclude(dependency("dev.samstevens.totp:.*:.*"))
+        exclude(dependency("org.bouncycastle:.*:.*"))
+        exclude(dependency("org.apache.commons:.*:.*"))
+        exclude(dependency("org.bstats:.*:.*"))
     }
 
-    relocate("co.aikar.acf", "xyz.kyngs.librelogin.lib.acf")
-    relocate("com.github.benmanes.caffeine", "xyz.kyngs.librelogin.lib.caffeine")
-    relocate("com.typesafe.config", "xyz.kyngs.librelogin.lib.hocon")
-    relocate("com.zaxxer.hikari", "xyz.kyngs.librelogin.lib.hikari")
-    relocate("org.mariadb", "xyz.kyngs.librelogin.lib.mariadb")
-    relocate("org.bstats", "xyz.kyngs.librelogin.lib.metrics")
-    relocate("org.intellij", "xyz.kyngs.librelogin.lib.intellij")
-    relocate("org.jetbrains", "xyz.kyngs.librelogin.lib.jetbrains")
-    relocate("io.leangen.geantyref", "xyz.kyngs.librelogin.lib.reflect")
-    relocate("org.spongepowered.configurate", "xyz.kyngs.librelogin.lib.configurate")
     relocate("net.byteflux.libby", "xyz.kyngs.librelogin.lib.libby")
-    relocate("org.postgresql", "xyz.kyngs.librelogin.lib.postgresql")
-    relocate("com.github.retrooper.packetevents", "xyz.kyngs.librelogin.lib.packetevents.api")
-    relocate("io.github.retrooper.packetevents", "xyz.kyngs.librelogin.lib.packetevents.platform")
+
+    minimize()
 }
 
 java {
@@ -101,7 +103,7 @@ dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     compileOnly("com.github.ProxioDev.ValioBungee:RedisBungee-Bungee:0.13.0")
     compileOnly("io.netty:netty-all:4.1.118.Final")
-    implementation("com.github.retrooper:packetevents-velocity:2.11.2")
+    compileOnly("com.github.retrooper:packetevents-velocity:2.11.2")
 
     //MySQL
     libby("org.mariadb.jdbc:mariadb-java-client:3.5.4")
@@ -139,13 +141,13 @@ dependencies {
 
     //Paper
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    implementation("com.github.retrooper:packetevents-spigot:2.11.2")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
     compileOnly("org.apache.logging.log4j:log4j-core:2.25.1")
 
     //Libby
-    implementation("xyz.kyngs.libby:libby-bukkit:1.6.0")
-    implementation("xyz.kyngs.libby:libby-velocity:1.6.0")
-    implementation("xyz.kyngs.libby:libby-paper:1.6.0")
+    compileOnly("xyz.kyngs.libby:libby-bukkit:1.6.0")
+    compileOnly("xyz.kyngs.libby:libby-velocity:1.6.0")
+    compileOnly("xyz.kyngs.libby:libby-paper:1.6.0")
 }
 
 tasks.withType<ProcessResources> {

@@ -40,10 +40,21 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> {
     private final PaperBootstrap bootstrap;
     private PaperListeners listeners;
     private boolean started;
+    private boolean failedInit;
 
     public PaperLibreLogin(PaperBootstrap bootstrap) {
         this.bootstrap = bootstrap;
         this.started = false;
+
+        try {
+            Class.forName("com.github.retrooper.packetevents.PacketEvents");
+        } catch (ClassNotFoundException e) {
+            failedInit = true;
+            bootstrap.getSLF4JLogger().error("!! PACKETEVENTS NOT FOUND !!");
+            bootstrap.getSLF4JLogger().error("LibreLogin requires PacketEvents to be installed as a plugin.");
+            bootstrap.getSLF4JLogger().error("Please download it from: https://modrinth.com/plugin/packetevents");
+            return;
+        }
 
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(bootstrap));
 
@@ -119,14 +130,15 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> {
 
     @Override
     protected void disable() {
-        PacketEvents.getAPI().terminate();
-        if (getDatabaseProvider() == null) return; // Not initialized
-
         super.disable();
     }
 
     @Override
     protected void enable() {
+        if (failedInit) {
+            bootstrap.disable();
+            return;
+        }
 
         logger = provideLogger();
 

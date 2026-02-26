@@ -173,7 +173,7 @@ public class DialogPrompt<P, S> extends PacketListenerAbstract {
                 }
 
                 UUID uuid = event.getUser().getUUID();
-                var player = plugin.getPlayerForUUID(uuid);
+                P player = plugin.getPlayerForUUID(uuid);
 
                 if (actionId.equals("vanes430:cancel")) {
                     Component message = getMessages().getMessage("dialog-kick-cancel");

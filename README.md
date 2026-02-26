@@ -1,5 +1,13 @@
 
 
+# IMPORTANT NOTICE 🚀 ❗
+
+**New Feature: Seamless Proxy-Side Dialog Authentication (Velocity Only)**
+- **Zero-Limbo Auth:** Players on **MC 1.21.6+** now authenticate using a modern Pop-up Dialog UI directly at the Proxy level.
+- **Improved Performance:** No more forced server switching to Limbo for modern clients; authentication happens during the "Joining World" phase.
+- **Fully Configurable:** All dialog texts, titles, and buttons can be customized in `messages.conf`.
+- **Enhanced Stability:** Legacy reflection-based Floodgate detection has been replaced with a stable PacketEvents implementation.
+
 # Maintenance update 🚀 ❗
 
 update: Thanks to vuxeim and his contribution we can still use LibreLoginProd with the newest minecraft versions.

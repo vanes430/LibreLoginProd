@@ -55,12 +55,22 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
     @Nullable private VelocityRedisBungeeIntegration redisBungee;
     @Nullable private LimboIntegration<RegisteredServer> limboIntegration;
     private VelocityListeners listeners;
+    private boolean failedInit;
 
     public VelocityLibreLogin(VelocityBootstrap bootstrap) {
         this.bootstrap = bootstrap;
     }
 
     protected void lateInit() {
+        try {
+            Class.forName("com.github.retrooper.packetevents.PacketEvents");
+        } catch (ClassNotFoundException e) {
+            failedInit = true;
+            logger.error("!! PACKETEVENTS NOT FOUND !!");
+            logger.error("LibreLogin requires PacketEvents to be installed as a plugin.");
+            logger.error("Please download it from: https://modrinth.com/plugin/packetevents");
+            return;
+        }
         PacketEvents.setAPI(VelocityPacketEventsBuilder.build(server, container, logger, dataDir));
 
         PacketEvents.getAPI().getSettings().checkForUpdates(false).bStats(false);
@@ -71,7 +81,6 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
 
     @Override
     protected void disable() {
-        PacketEvents.getAPI().terminate();
         super.disable();
     }
 
@@ -205,6 +214,7 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
     @Override
     protected void enable() {
         lateInit();
+        if (failedInit) return;
         if (pluginPresent("redisbungee")) {
             redisBungee = new VelocityRedisBungeeIntegration();
         }
