@@ -35,25 +35,23 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
     private final Map<P, String> awaiting2FA;
     private final Cache<UUID, EmailVerifyData> emailConfirmCache;
     private final Cache<UUID, String> passwordResetCache;
+    private final DialogPrompt<P, S> dialogPrompt;
 
     public AuthenticAuthorizationProvider(AuthenticLibreLogin<P, S> plugin) {
         super(plugin);
         unAuthorized = new ConcurrentHashMap<>();
         awaiting2FA = new ConcurrentHashMap<>();
-
-        var millis =
-                plugin.getConfiguration()
-                        .get(ConfigurationKeys.MILLISECONDS_TO_REFRESH_NOTIFICATION);
-
-        if (millis > 0) {
-            plugin.repeat(this::notifyUnauthorized, 0, millis);
-        }
+        dialogPrompt = new DialogPrompt<>(plugin);
 
         plugin.repeat(this::broadcastActionbars, 0, 1000);
 
         emailConfirmCache = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
 
         passwordResetCache = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
+    }
+
+    public DialogPrompt<P, S> getDialogPrompt() {
+        return dialogPrompt;
     }
 
     public Cache<UUID, EmailVerifyData> getEmailConfirmCache() {
@@ -115,17 +113,15 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
     }
 
     public void startTracking(User user, P player) {
-        var audience = platformHandle.getAudienceForPlayer(player);
-
         unAuthorized.put(player, user.isRegistered());
 
         plugin.cancelOnExit(
                 plugin.delay(
                         () -> {
                             if (!unAuthorized.containsKey(player)) return;
-                            sendInfoMessage(user.isRegistered(), audience);
+                            sendInfoMessage(user.isRegistered(), player);
                         },
-                        250),
+                        1000),
                 player);
 
         var limit = plugin.getConfiguration().get(ConfigurationKeys.SECONDS_TO_AUTHORIZE);
@@ -141,22 +137,18 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
                             limit * 1000L),
                     player);
         }
-
-        sendInfoMessage(user.isRegistered(), audience);
     }
 
     private void broadcastActionbars() {
         var wrong = new HashSet<P>();
         unAuthorized.forEach(
                 (player, registered) -> {
-                    var audience = platformHandle.getAudienceForPlayer(player);
-
-                    if (audience == null) {
+                    if (platformHandle.getAudienceForPlayer(player) == null) {
                         wrong.add(player);
                         return;
                     }
 
-                    sendActionBar(registered, audience);
+                    sendActionBar(registered, platformHandle.getAudienceForPlayer(player));
                 });
 
         wrong.forEach(unAuthorized::remove);
@@ -170,7 +162,9 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
         }
     }
 
-    private void sendInfoMessage(boolean registered, Audience audience) {
+    private void sendInfoMessage(boolean registered, P player) {
+        if (dialogPrompt.checkAndSend(player, registered)) return;
+        var audience = platformHandle.getAudienceForPlayer(player);
         audience.sendMessage(
                 plugin.getMessages().getMessage(registered ? "prompt-login" : "prompt-register"));
         if (!plugin.getConfiguration().get(ConfigurationKeys.USE_TITLES)) return;
@@ -198,14 +192,12 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
         var wrong = new HashSet<P>();
         unAuthorized.forEach(
                 (player, registered) -> {
-                    var audience = platformHandle.getAudienceForPlayer(player);
-
-                    if (audience == null) {
+                    if (platformHandle.getAudienceForPlayer(player) == null) {
                         wrong.add(player);
                         return;
                     }
 
-                    sendInfoMessage(registered, audience);
+                    sendInfoMessage(registered, player);
                 });
 
         wrong.forEach(unAuthorized::remove);

@@ -139,6 +139,8 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> {
             return;
         }
 
+        PacketEvents.getAPI().init();
+
         boolean isBehindProxy;
         if (getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_4))
             isBehindProxy = Bukkit.getServer().getServerConfig().isProxyEnabled();
@@ -180,6 +182,11 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> {
         Bukkit.getPluginManager().registerEvents(listeners, bootstrap);
         Bukkit.getPluginManager().registerEvents(new Blockers(this), bootstrap);
         PacketEvents.getAPI().getEventManager().registerListener(new PacketListener(listeners));
+        if (getAuthorizationProvider() != null) {
+            PacketEvents.getAPI()
+                    .getEventManager()
+                    .registerListener(getAuthorizationProvider().getDialogPrompt());
+        }
 
         started = true;
     }

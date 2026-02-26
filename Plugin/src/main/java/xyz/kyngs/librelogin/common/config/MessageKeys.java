@@ -1309,4 +1309,50 @@ This section contains autocompletes for commands. It is pretty large, so most pe
                     "This hint is displayed when the player starts typing the /confirmpasswordreset"
                             + " command.",
                     ConfigurateHelper::getString);
+
+    /*
+    Dialogs
+     */
+
+    public static final ConfigurationKey<String> DIALOG_LOGIN_PROMPT =
+            new ConfigurationKey<>(
+                    "dialog-login-prompt",
+                    "&eEnter your password:",
+                    "This message is displayed in the login dialog.",
+                    ConfigurateHelper::getString);
+
+    public static final ConfigurationKey<String> DIALOG_REGISTER_PROMPT =
+            new ConfigurationKey<>(
+                    "dialog-register-prompt",
+                    "&eSetup your password:",
+                    "This message is displayed in the register dialog.",
+                    ConfigurateHelper::getString);
+
+    public static final ConfigurationKey<String> DIALOG_BUTTON_SUBMIT =
+            new ConfigurationKey<>(
+                    "dialog-button-submit",
+                    "&aSubmit",
+                    "This message is displayed on the submit button in the dialog.",
+                    ConfigurateHelper::getString);
+
+    public static final ConfigurationKey<String> DIALOG_BUTTON_CANCEL =
+            new ConfigurationKey<>(
+                    "dialog-button-cancel",
+                    "&cCancel",
+                    "This message is displayed on the cancel button in the dialog.",
+                    ConfigurateHelper::getString);
+
+    public static final ConfigurationKey<String> DIALOG_INPUT_PASSWORD =
+            new ConfigurationKey<>(
+                    "dialog-input-password",
+                    "Password",
+                    "This message is displayed as the password input label in the dialog.",
+                    ConfigurateHelper::getString);
+
+    public static final ConfigurationKey<String> DIALOG_INPUT_CONFIRM_PASSWORD =
+            new ConfigurationKey<>(
+                    "dialog-input-confirm-password",
+                    "Confirm Password",
+                    "This message is displayed as the confirm password input label in the dialog.",
+                    ConfigurateHelper::getString);
 }

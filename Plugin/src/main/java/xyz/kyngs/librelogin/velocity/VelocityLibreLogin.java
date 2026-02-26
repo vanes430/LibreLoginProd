@@ -12,13 +12,16 @@ import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.CommandManager;
 import co.aikar.commands.VelocityCommandIssuer;
 import co.aikar.commands.VelocityCommandManager;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.google.inject.Inject;
 import com.velocitypowered.api.network.ProtocolVersion;
+import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.PluginDescription;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import io.github.retrooper.packetevents.velocity.factory.VelocityPacketEventsBuilder;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -48,6 +51,7 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
     @Inject private ProxyServer server;
     @Inject private Metrics.Factory factory;
     @Inject private PluginDescription description;
+    @Inject private PluginContainer container;
     @Nullable private VelocityRedisBungeeIntegration redisBungee;
     @Nullable private LimboIntegration<RegisteredServer> limboIntegration;
 
@@ -55,8 +59,18 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
         this.bootstrap = bootstrap;
     }
 
+    protected void lateInit() {
+        PacketEvents.setAPI(VelocityPacketEventsBuilder.build(server, container, logger, dataDir));
+
+        PacketEvents.getAPI().getSettings().checkForUpdates(false).bStats(false);
+
+        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().init();
+    }
+
     @Override
     protected void disable() {
+        PacketEvents.getAPI().terminate();
         super.disable();
     }
 
@@ -188,10 +202,16 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
 
     @Override
     protected void enable() {
+        lateInit();
         if (pluginPresent("redisbungee")) {
             redisBungee = new VelocityRedisBungeeIntegration();
         }
         super.enable();
+        if (getAuthorizationProvider() != null) {
+            PacketEvents.getAPI()
+                    .getEventManager()
+                    .registerListener(getAuthorizationProvider().getDialogPrompt());
+        }
         getLogger().info("LibreLogin version " + getVersion() + " enabled!");
     }
 

@@ -101,6 +101,7 @@ dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     compileOnly("com.velocitypowered:velocity-proxy:3.2.0-SNAPSHOT-277")
     compileOnly("com.github.ProxioDev.ValioBungee:RedisBungee-Bungee:0.13.0")
+    implementation("com.github.retrooper:packetevents-velocity:2.11.2")
 
     //MySQL
     libby("org.mariadb.jdbc:mariadb-java-client:3.5.4")
@@ -138,7 +139,7 @@ dependencies {
 
     //Paper
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    implementation("com.github.retrooper:packetevents-spigot:2.11.0")
+    implementation("com.github.retrooper:packetevents-spigot:2.11.2")
     compileOnly("org.apache.logging.log4j:log4j-core:2.25.1")
 
     //Libby
